@@ -3,9 +3,14 @@
 # 100% made up. Not at all useful.
 
 commands:
-  - python quickie.py
-  - python2.7 quickie.py
+  build:
+    - sleep 2
+  run:
+    - python3.2 quickie.py
+    - python2.7 quickie.py
 
 branches:
   - master
   - testing
+
+data_dir: '.quickiedata'
