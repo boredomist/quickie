@@ -78,7 +78,9 @@ def read_config(path):
         exit(1)
 
     with open(conf, 'r') as stream:
-        return yaml.load(stream)
+        config = yaml.load(stream)
+        config['repo'] = path
+        return config
 
 
 def create_data_dir(repo, config):
@@ -91,11 +93,15 @@ def create_data_dir(repo, config):
 
         config['data_dir_path'] = data_dir
 
-        # Copy the template files into the data directory (without overwriting
-        # previously present files)
         dir, _ = os.path.split(__file__)
         template = os.path.abspath(os.path.join(dir, "data"))
-        sh.cp('-r', '--no-clobber', sh.glob(template + '/*'), data_dir)
+
+        # Don't overwrite the data file if it's already created.
+        sh.cp('--no-clobber', template + '/data.json', data_dir)
+
+        sh.cp(sh.glob(template + '/*.html'), data_dir)
+        sh.cp(sh.glob(template + '/*.js'), data_dir)
+        sh.cp(sh.glob(template + '/*.css'), data_dir)
 
     except sh.ErrorReturnCode as e:
         fatal("Couldn't create data directory:" + str(e))
@@ -108,7 +114,10 @@ def do_run(git, config):
     except Exception as e:
         fatal("Couldn't open the data file: " + str(e))
 
+    data['repository'] = config['repo']
     data['branches'] = data.get('branches', {})
+    data['first_run'] = data.get('first_run', time.strftime('%X %x %Z'))
+    data['last_run'] = time.strftime('%X %x %Z')
 
     cmds = {'run': config.get('commands', {}).get('run', []),
             'build': config.get('commands', {}).get('build', [])}
