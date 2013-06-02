@@ -3,26 +3,40 @@
 var Quickie = {};
 
 Quickie.data = null;
-Quickie.data_points = [];
+Quickie.series = [];
 
 Quickie.initialize = function(data) {
     Quickie.data = data;
 
+    Quickie.prepareData();
     Quickie.initInfo();
     Quickie.initPlot();
 }
 
 Quickie.initPlot = function() {
-    this.plot = $('#placeholder').plot([[[1, 2], [10, 20]], [[20,10], [2,1]]], {
+    this.plot = $('#placeholder').plot(Quickie.series, {
         series: {
             lines: { show: true },
             points: { show: true }
         },
 
+        grid: {
+            hoverable: true,
+            clickable: true
+        },
+
         xaxis: {
-            show: true,
-            position: "bottom",
-            timeformat: "%Y/%m/%d"
+            mode: "time",
+            timezone: "broswer",
+            min: this.data.first_run,
+            max: this.data.last_run
+        },
+
+        yaxis: {
+            min: 0,
+            tickFormatter: function(num, obj) {
+                return num.toFixed(3) + " s";
+            }
         },
 
         legend: {
@@ -31,6 +45,49 @@ Quickie.initPlot = function() {
         }
 
     });
+
+    var previous = null;
+    $('#placeholder').bind('plothover', function(event, pos, item) {
+        if(item && previous != item.dataIndex) {
+            previous = item.dataIndex;
+
+            $("#tooltip").remove();
+
+            var branch = item.series.branch;
+            var command = item.series.cmd;
+            var series = Quickie.data.branches[branch][command];
+            var run = series[item.dataIndex];
+
+            var html = Mustache.render(
+                "Branch {{branch}}@{{commit}}<br>" +
+                    "Built at: {{date}}<br>" +
+                    "Running time: {{time}} seconds <br>" +
+                    "Ran command: {{command}}",
+
+                {
+                    branch: branch,
+                    command: command,
+                    date: new Date(run[0] * 1000).toLocaleString(),
+                    time: run[1].toFixed(3),
+                    commit: run[2]
+                });
+
+            $("<div id='tooltip'>" + html + "</div>").css({
+                position: 'absolute',
+                display: 'none',
+                top: item.pageY + 5,
+                left: item.pageX + 5,
+                border: '1px solid #fdd',
+                padding: '2px',
+                'background-color': '#fee',
+                opacity: 0.80
+            }).appendTo('body').fadeIn(200);
+        } else if(item == null) {
+            $('#tooltip').fadeOut(500);
+            previous = null;
+        }
+    });
+
 }
 
 Quickie.initInfo = function() {
@@ -39,11 +96,39 @@ Quickie.initInfo = function() {
 
     var replacements = {
         reponame: this.data.repository,
-        firstrun: this.data.first_run,
-        lastrun: this.data.last_run
+        firstrun: new Date(this.data.first_run).toLocaleString(),
+        lastrun: new Date(this.data.last_run).toLocaleString()
     };
 
     info.html(Mustache.render(info.html(), replacements));
 
-    // TODO: this.
+    // TODO: fill this out some.
+}
+
+
+Quickie.prepareData = function() {
+    var i = 0;
+
+    // Push all the data
+    $.each(Quickie.data.branches, function(branch, cmd) {
+        $.each(cmd, function(name, runs) {
+
+            // Convert unix timestamp to milliseconds
+            var runData = $.map(runs, function(e) {
+                return [[e[0] * 1000, e[1], e[2]]];
+            });
+
+            Quickie.series.push({
+                cmd: name,
+                branch: branch,
+                color: i++,
+                label: name + '@' + branch,
+                data: runData
+            });
+        });
+    });
+
+    // Convert seconds to milliseconds
+    this.data.first_run *= 1000;
+    this.data.last_run *= 1000;
 }
