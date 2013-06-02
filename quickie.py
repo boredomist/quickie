@@ -183,8 +183,6 @@ def do_run(git, config):
     with open(data_path, 'w') as out:
         json.dump(data, out)
 
-    print(data)
-
 
 def print_usage(error=False):
     print('Usage: quickie DIRECTORY')
