@@ -45,6 +45,11 @@ Quickie.initPlot = function() {
         }
     };
 
+    $('#plot-container').resizable({
+        minWidth: 400,
+        minHeight: 550
+    });
+
     this.plot = $.plot('#placeholder', Quickie.series, options);
 
     this.overview = $.plot('#overview', Quickie.series, {
