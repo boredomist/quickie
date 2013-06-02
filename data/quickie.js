@@ -14,7 +14,7 @@ Quickie.initialize = function(data) {
 }
 
 Quickie.initPlot = function() {
-    this.plot = $('#placeholder').plot(Quickie.series, {
+    var options =  {
         series: {
             lines: { show: true },
             points: { show: true }
@@ -43,7 +43,33 @@ Quickie.initPlot = function() {
             show: true,
             position: "ne"
         }
+    };
 
+    this.plot = $.plot('#placeholder', Quickie.series, options);
+
+    this.overview = $.plot('#overview', Quickie.series, {
+	series: {
+            lines: {
+                show: true,
+                lineWidth: 1
+            },
+            shadowSize: 0
+        },
+        legend: {
+            show: false
+        },
+        xaxis: {
+            ticks: [],
+            mode: "time"
+        },
+        yaxis: {
+            ticks: [],
+            min: 0,
+            autoscaleMargin: 0.1
+        },
+        selection: {
+            mode: "x"
+        }
     });
 
     var previous = null;
@@ -87,6 +113,24 @@ Quickie.initPlot = function() {
             previous = null;
         }
     });
+
+
+    $('#placeholder').bind('plotselected', function(event, ranges) {
+        Quickie.plot = $.plot('#placeholder', Quickie.series,
+                              $.extend(true, {}, options, {
+	                          xaxis: {
+                                      min: ranges.xaxis.from,
+                                      max: ranges.xaxis.to
+                                  }
+                              }));
+
+        Quickie.overview.setSelection(ranges, true);
+    });
+
+    $("#overview").bind("plotselected", function (event, ranges) {
+        Quickie.plot.setSelection(ranges);
+    });
+
 
 }
 
