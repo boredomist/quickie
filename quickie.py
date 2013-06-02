@@ -116,23 +116,28 @@ def do_run(git, config):
 
     data['repository'] = config['repo']
     data['branches'] = data.get('branches', {})
-    data['first_run'] = data.get('first_run', time.strftime('%X %x %Z'))
-    data['last_run'] = time.strftime('%X %x %Z')
+    data['first_run'] = data.get('first_run', time.time())
+    data['last_run'] = time.time()
 
     cmds = {'run': config.get('commands', {}).get('run', []),
             'build': config.get('commands', {}).get('build', [])}
 
     for branch in config['branches']:
-        print_status("Switching to branch {0}...".format(branch))
-
         branch_dict = data['branches'].get(branch, {})
+
+        commit = ""
 
         try:
             git.checkout('-f', branch)
+            commit = str(sh.git('rev-parse', '--short', '--verify', 'HEAD'))
+            commit = commit.rstrip()
         except sh.ErrorReturnCode as e:
-            print_warning("Skipping branch, git errored on checkout: " +
-                          str(e.stderr))
+            print_warning("Skipping branch " + branch + ", git errored on" +
+                          "checkout: " + str(e.stderr))
             continue
+
+        print_status("Switching to branch {}, commit {}..."
+                     .format(branch, commit))
 
         failed = True
 
@@ -170,7 +175,7 @@ def do_run(git, config):
 
             print('`{}` completed in {} seconds'.format(cmd, timer.seconds()))
 
-            run_results.append(timer.seconds())
+            run_results.append([time.time(), timer.seconds(), commit])
             branch_dict[cmd] = run_results
 
         data['branches'][branch] = branch_dict
