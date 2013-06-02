@@ -143,6 +143,8 @@ Quickie.initInfo = function() {
     var info = $('#info');
     var template = info.html();
 
+    document.title = this.data.repository + ' :: Quickie';
+
     var replacements = {
         reponame: this.data.repository,
         firstrun: new Date(this.data.first_run).toLocaleString(),
