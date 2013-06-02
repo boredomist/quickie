@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Quickie :: reponame</title>
+
+    <link type="text/css" rel="stylesheet" href="site.css">
+
+    <script type="text/javascript" src="jquery.min.js"></script>
+    <script type="text/javascript" src="jquery.flot.min.js"></script>
+    <script type="text/javascript" src="jquery.mustache.js"></script>
+    <script type="text/javascript" src="quickie.js"></script>
+
+  </head>
+
+  <body>
+    <noscript>This is almost entirely dependent on Javascript, please enable it.</noscript>
+
+    <div id="container">
+
+      <div id="info">
+        <h1>{{reponame}}</h1>
+        <p>First run: {{firstrun}}</p>
+        <p>Most recent: {{lastrun}}</p>
+      </div>
+
+      <div id="plot-container">
+        <div id="placeholder">
+        </div>
+
+        <p id="choices" style="float:right; width: 150px;">
+        </p>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+        $.ajax({
+            mimeType: "text/plain",
+            url: "data.json",
+            dataType: "json",
+            success: Quickie.initialize
+          });
+      });
+    </script>
+
+  </body>
+</html>

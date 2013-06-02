@@ -1,0 +1,12 @@
+#container {
+    margin: 0px auto;
+    width: 800px;
+}
+
+#plot-container {
+    height: 400px;
+}
+
+#placeholder {
+    height: 100%;
+}
