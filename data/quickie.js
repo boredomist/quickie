@@ -88,14 +88,32 @@ Quickie.initPlot = function() {
             var command = item.series.cmd;
             var series = Quickie.data.branches[branch][command];
             var run = series[item.dataIndex];
+            var lastRun = series[item.dataIndex == 0 ? 0 :
+                                 item.dataIndex - 1];
+
+            // Make note of the change since the last run
+            var delta = run[1] - lastRun[1];
+            var percent = (run[1] - lastRun[1]) / lastRun[1] * 100;
+
+            delta = delta.toFixed(3);
+            percent = percent.toFixed(1);
+
+            if(delta > 0) {
+                delta = "+" + delta;
+                percent = "+" + percent;
+            }
+
 
             var html = Mustache.render(
-                "Branch {{branch}}@{{commit}}<br>" +
-                    "Built at: {{date}}<br>" +
-                    "Running time: {{time}} seconds <br>" +
-                    "Ran command: {{command}}",
+                "<b>Branch</b> {{branch}}@{{commit}}<br><br>" +
+                    "<b>Time:</b> {{time}} seconds <br>" +
+                    "<b>Δs:</b> {{delta}} s, {{percent}}%<br>" +
+                    "<b>Command:</b> {{command}}<br>" +
+                    "<b>Built at:</b> {{date}}<br>",
 
                 {
+                    delta: delta,
+                    percent: percent,
                     branch: branch,
                     command: command,
                     date: new Date(run[0] * 1000).toLocaleString(),
