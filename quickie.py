@@ -57,15 +57,7 @@ def set_repository(repo):
     sh.cd(tmp_dir)
     sh.cp('-R', repo + '/.', tmp_dir)
 
-    # Remove any uncommited changes
-    git = sh.git.bake(_cwd=tmp_dir)
-    try:
-        git.reset('--hard', 'HEAD')
-        git.clean('--force', '-x', '-d')
-    except sh.ErrorReturnCode:
-        fatal('Are you sure this is a git repo?')
-
-    return git, tmp_dir
+    return tmp_dir
 
 
 def read_config(path):
@@ -107,7 +99,7 @@ def create_data_dir(repo, config):
         fatal("Couldn't create data directory:" + str(e))
 
 
-def do_run(git, config):
+def do_run(config):
     data_path = os.path.join(config['data_dir_path'], 'data.json')
     try:
         data = json.load(open(data_path))
@@ -115,70 +107,67 @@ def do_run(git, config):
         fatal("Couldn't open the data file: " + str(e))
 
     data['repository'] = config['repo']
-    data['branches'] = data.get('branches', {})
     data['first_run'] = data.get('first_run', time.time())
     data['last_run'] = time.time()
+    data['run_data'] = data.get('run_data', {})
 
     cmds = {'run': config.get('commands', {}).get('run', []),
             'build': config.get('commands', {}).get('build', [])}
 
-    for branch in config['branches']:
-        branch_dict = data['branches'].get(branch, {})
+    repo_data = {}
 
-        commit = ""
-
+    if os.path.exists('.git/'):
         try:
-            git.checkout('-f', branch)
+            # Grab the current branch / commit
+            branch = str(sh.git('rev-parse', '--verify', '--abbrev-ref', 'HEAD'))
+            branch = branch.rstrip()
             commit = str(sh.git('rev-parse', '--short', '--verify', 'HEAD'))
             commit = commit.rstrip()
+
+            repo_data = {'branch': branch, 'commit': commit}
         except sh.ErrorReturnCode as e:
-            print_warning("Skipping branch " + branch + ", git errored on" +
-                          "checkout: " + str(e.stderr))
-            continue
+            print_warning("Couldn't get branch and commit info for repository" +
+                          str(e))
 
-        print_status("Switching to branch {0}, commit {1}..."
-                     .format(branch, commit))
+    failed = True
 
-        failed = True
+    build_timer = Timer()
+    with build_timer:
+        print_status('Building...')
+        for cmd in cmds['build']:
+            try:
+                print(cmd)
+                subprocess.check_call(cmd, shell=True)
+            except subprocess.CalledProcessError:
+                print_warning('Command failed')
+                break
+        else:
+            failed = False
 
-        timer = Timer()
-        with timer:
-            print_status('Building...')
-            for cmd in cmds['build']:
-                try:
-                    print(cmd)
-                    subprocess.check_call(cmd, shell=True)
-                except subprocess.CalledProcessError:
-                    print_warning('Command failed')
-                    break
-            else:
-                failed = False
+        if failed:
+            print_warning('!! Build failed, skipping run')
 
-            if failed:
-                print_warning('!! Build failed, skipping run')
-                continue
+    print_status('Build complete ({0} s)'
+                 .format(build_timer.seconds()))
 
-        print_status('Build complete ({0} s)'
-                     .format(timer.seconds()))
+    print_status('Running...')
+    for cmd in cmds['run']:
+        run_results = data['run_data'].get(cmd, [])
 
-        print_status('Running...')
-        for cmd in cmds['run']:
-            run_results = branch_dict.get(cmd, [])
+        print(cmd)
 
-            print(cmd)
-            timer = Timer()
-            with timer:
-                try:
-                    subprocess.check_call(cmd, shell=True)
-                except subprocess.CalledProcessError:
-                    print_warning('Command failed')
+        run_timer = Timer()
+        with run_timer:
+            try:
+                subprocess.check_call(cmd, shell=True)
+            except subprocess.CalledProcessError:
+                print_warning('Command failed')
 
-            print('`{0}` completed in {1} seconds'.format(cmd, timer.seconds()))
+        print('`{0}` completed in {1} seconds'
+              .format(cmd, run_timer.seconds()))
 
-            run_results.append([time.time(), timer.seconds(), commit])
-            branch_dict[cmd] = run_results
-
-        data['branches'][branch] = branch_dict
+        run_results.append([time.time(), run_timer.seconds(), repo_data])
+        data['run_data'][cmd] = run_results
 
     with open(data_path, 'w') as out:
         json.dump(data, out)
@@ -203,9 +192,9 @@ if __name__ == '__main__':
     config = read_config(repo)
     create_data_dir(repo, config)
 
-    git, tmpdir = set_repository(repo)
+    tmpdir = set_repository(repo)
 
-    do_run(git, config)
+    do_run(config)
 
     print_status("Removing temp directory...")
     sh.rm('-r', tmpdir)

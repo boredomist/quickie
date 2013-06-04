@@ -1,5 +1,10 @@
 "use strict";
 
+// String truncate
+String.prototype.truncate = function(n){
+    return this.substr(0,n-1)+(this.length > n ? '...' : '');
+};
+
 var Quickie = {};
 
 Quickie.data = null;
@@ -84,9 +89,8 @@ Quickie.initPlot = function() {
 
             $("#tooltip").remove();
 
-            var branch = item.series.branch;
             var command = item.series.cmd;
-            var series = Quickie.data.branches[branch][command];
+            var series = Quickie.data.run_data[command];
             var run = series[item.dataIndex];
             var lastRun = series[item.dataIndex == 0 ? 0 :
                                  item.dataIndex - 1];
@@ -103,9 +107,19 @@ Quickie.initPlot = function() {
                 percent = "+" + percent;
             }
 
+            var repo_info = "";
+
+            // Is it empty?
+            if(run[2].toSource() !== "({})") {
+                repo_info = Mustache.render("{{commit}}@{{branch}}",
+                                            { commit: run[2].commit,
+                                              branch: run[2].branch});
+            } else {
+                repo_info = "No git data";
+            }
 
             var html = Mustache.render(
-                "<b>Branch</b> {{branch}}@{{commit}}<br><br>" +
+                "<b>Git:</b> {{repo_info}}<br>" +
                     "<b>Time:</b> {{time}} seconds <br>" +
                     "<b>Δs:</b> {{delta}} s, {{percent}}%<br>" +
                     "<b>Command:</b> {{command}}<br>" +
@@ -114,7 +128,7 @@ Quickie.initPlot = function() {
                 {
                     delta: delta,
                     percent: percent,
-                    branch: branch,
+                    repo_info: repo_info,
                     command: command,
                     date: new Date(run[0] * 1000).toLocaleString(),
                     time: run[1].toFixed(3),
@@ -179,21 +193,17 @@ Quickie.prepareData = function() {
     var i = 0;
 
     // Push all the data
-    $.each(Quickie.data.branches, function(branch, cmd) {
-        $.each(cmd, function(name, runs) {
+    $.each(Quickie.data.run_data, function(name, runs) {
+        // Convert unix timestamp to milliseconds
+        var runData = $.map(runs, function(e) {
+            return [[e[0] * 1000, e[1], e[2]]];
+        });
 
-            // Convert unix timestamp to milliseconds
-            var runData = $.map(runs, function(e) {
-                return [[e[0] * 1000, e[1], e[2]]];
-            });
-
-            Quickie.series.push({
-                cmd: name,
-                branch: branch,
-                color: i++,
-                label: name + '@' + branch,
-                data: runData
-            });
+        Quickie.series.push({
+            cmd: name,
+            color: i++,
+            label: name.truncate(50),
+            data: runData
         });
     });
 

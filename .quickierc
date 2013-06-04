@@ -1,16 +1,12 @@
-# -*- Mode: yaml; -*-
+# -*- mode: yaml; -*-
 
 # 100% made up. Not at all useful.
 
 commands:
   build:
-    - sleep 2
+    - echo 'build goes here'
   run:
     - python3.2 quickie.py
     - python2.7 quickie.py
-
-branches:
-  - master
-  - testing
 
 data_dir: '.quickiedata'
