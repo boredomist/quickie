@@ -10,3 +10,6 @@ commands:
     - python2.7 quickie.py
 
 data_dir: '.quickiedata'
+
+# whether or not to ignore build/run output
+quiet: true

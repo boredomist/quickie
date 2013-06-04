@@ -16,6 +16,7 @@ import time
 
 from termcolor import cprint, colored
 
+global QUIET
 
 ### Some helpers to print in color
 def fatal(msg):
@@ -136,8 +137,12 @@ def do_run(config):
         print_status('Building...')
         for cmd in cmds['build']:
             try:
-                print(cmd)
-                subprocess.check_call(cmd, shell=True)
+                print_status('\t' + cmd)
+                if QUIET:
+                    subprocess.check_call(cmd, shell=True,stdout=subprocess.PIPE,
+                                          stderr=subprocess.PIPE)
+                else:
+                    subprocess.check_call(cmd, shell=True)
             except subprocess.CalledProcessError:
                 print_warning('Command failed')
                 break
@@ -154,16 +159,20 @@ def do_run(config):
     for cmd in cmds['run']:
         run_results = data['run_data'].get(cmd, [])
 
-        print(cmd)
+        print_status('\t' + cmd)
 
         run_timer = Timer()
         with run_timer:
             try:
-                subprocess.check_call(cmd, shell=True)
+                if QUIET:
+                    subprocess.check_call(cmd, shell=True,stdout=subprocess.PIPE,
+                                          stderr=subprocess.PIPE)
+                else:
+                    subprocess.check_call(cmd, shell=True)
             except subprocess.CalledProcessError:
                 print_warning('Command failed')
 
-        print('`{0}` completed in {1} seconds'
+        print_status('`{0}` completed in {1} seconds'
               .format(cmd, run_timer.seconds()))
 
         run_results.append([time.time(), run_timer.seconds(), repo_data])
@@ -191,6 +200,9 @@ if __name__ == '__main__':
 
     config = read_config(repo)
     create_data_dir(repo, config)
+
+    global QUIET
+    QUIET = config.get('quiet', False)
 
     tmpdir = set_repository(repo)
 
