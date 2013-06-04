@@ -161,6 +161,7 @@ def do_run(config):
 
         print_status('\t' + cmd)
 
+        start = time.time()
         run_timer = Timer()
         with run_timer:
             try:
@@ -175,7 +176,7 @@ def do_run(config):
         print_status('`{0}` completed in {1} seconds'
               .format(cmd, run_timer.seconds()))
 
-        run_results.append([time.time(), run_timer.seconds(), repo_data])
+        run_results.append([start, run_timer.seconds(), repo_data])
         data['run_data'][cmd] = run_results
 
     with open(data_path, 'w') as out:
