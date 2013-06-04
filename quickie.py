@@ -136,7 +136,7 @@ def do_run(git, config):
                           "checkout: " + str(e.stderr))
             continue
 
-        print_status("Switching to branch {}, commit {}..."
+        print_status("Switching to branch {0}, commit {1}..."
                      .format(branch, commit))
 
         failed = True
@@ -173,7 +173,7 @@ def do_run(git, config):
                 except subprocess.CalledProcessError:
                     print_warning('Command failed')
 
-            print('`{}` completed in {} seconds'.format(cmd, timer.seconds()))
+            print('`{0}` completed in {1} seconds'.format(cmd, timer.seconds()))
 
             run_results.append([time.time(), timer.seconds(), commit])
             branch_dict[cmd] = run_results
