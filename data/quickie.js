@@ -33,8 +33,7 @@ Quickie.initPlot = function() {
         xaxis: {
             mode: "time",
             timezone: "broswer",
-            min: this.data.first_run,
-            max: this.data.last_run
+            min: this.data.first_run
         },
 
         yaxis: {
