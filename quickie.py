@@ -5,14 +5,14 @@ time.
 This Python script will generate data to be graphed by a browser.
 """
 
+import argparse
 import json
 import os
 import sh
-import sys
-import tempfile
-import yaml
 import subprocess
+import tempfile
 import time
+import yaml
 
 from termcolor import cprint, colored
 
@@ -61,16 +61,14 @@ def set_repository(repo):
     return tmp_dir
 
 
-def read_config(path):
+def read_config(path, config_file):
     """Read the Quickie configuration file stored in `path'"""
 
-    conf = os.path.join(path, '.quickierc')
-
-    if not os.path.exists(conf):
+    if not os.path.exists(config_file):
         fatal('No .quickierc here!')
         exit(1)
 
-    with open(conf, 'r') as stream:
+    with open(config_file, 'r') as stream:
         config = yaml.load(stream)
         config['repo'] = path
         return config
@@ -183,23 +181,27 @@ def do_run(config):
         json.dump(data, out)
 
 
-def print_usage(error=False):
-    print('Usage: quickie DIRECTORY')
-    if error:
-        exit(1)
-    else:
-        exit(0)
-
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print_usage(error=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('directory', help="Directory to be duplicated " +
+                        "and used for profiling")
+    parser.add_argument('-c', '--config', help='Configuration file to use ' +
+                        'will default to <directory>/.quickierc')
+    args = parser.parse_args()
 
-    repo = os.path.abspath(sys.argv[1])
+    repo = os.path.abspath(args.directory)
+    config_file = args.config
+
+    if config_file == None:
+        config_file = os.path.join(repo, '.quickierc')
+
     if not os.path.exists(repo):
         fatal(repo + " doesn't exist!")
+    if not os.path.exists(config_file):
+        fatal(config_file + " doesn't exist!")
 
-    config = read_config(repo)
+    config = read_config(repo, config_file)
     create_data_dir(repo, config)
 
     global QUIET
