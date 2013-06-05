@@ -154,12 +154,12 @@ def do_run(config):
                  .format(build_timer.seconds()))
 
     print_status('Running...')
+    start = time.time()
     for cmd in cmds['run']:
         run_results = data['run_data'].get(cmd, [])
 
         print_status('\t' + cmd)
 
-        start = time.time()
         run_timer = Timer()
         with run_timer:
             try:
