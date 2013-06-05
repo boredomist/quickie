@@ -24,16 +24,28 @@
 
     <div id="container">
 
-      <div id="info">
-        <h1>{{reponame}}</h1>
-        <p>First run: {{firstrun}}</p>
-        <p>Most recent: {{lastrun}}</p>
+      <h1>{{reponame}}</h1>
+
+      <div id="tooltip">
+          <b>Git:</b> {{repo_info}}<br>
+          <b>Time:</b> {{time}} seconds <br>
+          <b>Δs:</b> {{delta}} s, {{percent}}%<br>
+          <b>Command:</b> {{command}}<br>
+          <b>Built at:</b> {{date}}<br>
       </div>
+
+
+      <div id="info">
+        <b>First run:</b> {{firstrun}}<br>
+        <b>Most recent:</b> {{lastrun}}<br>
+      </div>
+
     </div>
 
     <div id="plot-container">
       <div id="placeholder"></div>
       <div id="overview"></div>
+      <div class="clearfix"></div>
     </div>
 
     <script type="text/javascript">

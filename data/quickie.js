@@ -86,8 +86,6 @@ Quickie.initPlot = function() {
         if(item && previous != item.dataIndex) {
             previous = item.dataIndex;
 
-            $("#tooltip").remove();
-
             var command = item.series.cmd;
             var series = Quickie.data.run_data[command];
             var run = series[item.dataIndex];
@@ -134,19 +132,8 @@ Quickie.initPlot = function() {
                     commit: run[2]
                 });
 
-            $("<div id='tooltip'>" + html + "</div>").css({
-                position: 'absolute',
-                display: 'none',
-                top: item.pageY + 5,
-                left: item.pageX + 5,
-                border: '1px solid #fdd',
-                padding: '2px',
-                'background-color': '#fee',
-                opacity: 0.80
-            }).appendTo('body').fadeIn(200);
-        } else if(item == null) {
-            $('#tooltip').fadeOut(500);
-            previous = null;
+            $("#tooltip").html(html).fadeIn(200);
+
         }
     });
 
@@ -171,7 +158,7 @@ Quickie.initPlot = function() {
 }
 
 Quickie.initInfo = function() {
-    var info = $('#info');
+    var info = $('#container');
     var template = info.html();
 
     document.title = this.data.repository + ' :: Quickie';

@@ -3,8 +3,19 @@ body {
 }
 
 #container {
-    margin: 0px auto;
+    margin: 0px auto 10px;
     width: 800px;
+}
+
+#info {
+    width: 49%;
+    display: inline-block;
+    float: right;
+}
+
+#tooltip {
+    width: 49%;
+    display: inline-block;
 }
 
 #plot-container {
@@ -17,4 +28,5 @@ body {
 
 #overview {
     height: 150px;
+}
 }
