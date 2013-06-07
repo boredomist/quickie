@@ -1,8 +1,8 @@
 "use strict";
 
 // String truncate
-String.prototype.truncate = function(n){
-    return this.substr(0,n-1)+(this.length > n ? '...' : '');
+String.prototype.truncate = function(n) {
+    return this.substr(0, n - 1) + (this.length > n ? '...' : '');
 };
 
 var Quickie = {};
@@ -16,7 +16,7 @@ Quickie.initialize = function(data) {
     Quickie.prepareData();
     Quickie.initInfo();
     Quickie.initPlot();
-}
+};
 
 Quickie.initPlot = function() {
     var options =  {
@@ -38,7 +38,7 @@ Quickie.initPlot = function() {
 
         yaxis: {
             min: 0,
-            tickFormatter: function(num, obj) {
+            tickFormatter: function(num) {
                 return num.toFixed(3) + " s";
             }
         },
@@ -83,13 +83,13 @@ Quickie.initPlot = function() {
 
     var previous = null;
     $('#placeholder').bind('plothover', function(event, pos, item) {
-        if(item && previous != item.dataIndex) {
+        if(item && previous !== item.dataIndex) {
             previous = item.dataIndex;
 
             var command = item.series.cmd;
             var series = Quickie.data.run_data[command];
             var run = series[item.dataIndex];
-            var lastRun = series[item.dataIndex == 0 ? 0 :
+            var lastRun = series[item.dataIndex === 0 ? 0 :
                                  item.dataIndex - 1];
 
             // Make note of the change since the last run
@@ -107,7 +107,7 @@ Quickie.initPlot = function() {
             var repo_info = "";
 
             // Is it empty?
-            if(Object.getOwnPropertyNames(run[2]) != 0) {
+            if(Object.getOwnPropertyNames(run[2]) !== 0) {
                 repo_info = Mustache.render("{{commit}}@{{branch}}",
                                             { commit: run[2].commit,
                                               branch: run[2].branch});
@@ -141,7 +141,7 @@ Quickie.initPlot = function() {
     $('#placeholder').bind('plotselected', function(event, ranges) {
         Quickie.plot = $.plot('#placeholder', Quickie.series,
                               $.extend(true, {}, options, {
-	                          xaxis: {
+                                  xaxis: {
                                       min: ranges.xaxis.from,
                                       max: ranges.xaxis.to
                                   }
@@ -155,11 +155,10 @@ Quickie.initPlot = function() {
     });
 
 
-}
+};
 
 Quickie.initInfo = function() {
     var info = $('#container');
-    var template = info.html();
 
     document.title = this.data.repository + ' :: Quickie';
 
@@ -172,7 +171,7 @@ Quickie.initInfo = function() {
     info.html(Mustache.render(info.html(), replacements));
 
     // TODO: fill this out some.
-}
+};
 
 
 Quickie.prepareData = function() {
@@ -196,4 +195,4 @@ Quickie.prepareData = function() {
     // Convert seconds to milliseconds
     this.data.first_run *= 1000;
     this.data.last_run *= 1000;
-}
+};
