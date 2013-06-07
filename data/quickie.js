@@ -107,7 +107,7 @@ Quickie.initPlot = function() {
             var repo_info = "";
 
             // Is it empty?
-            if(run[2].toSource() !== "({})") {
+            if(Object.getOwnPropertyNames(run[2]) != 0) {
                 repo_info = Mustache.render("{{commit}}@{{branch}}",
                                             { commit: run[2].commit,
                                               branch: run[2].branch});
